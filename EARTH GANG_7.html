@@ -253,6 +253,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'DM
   80%{opacity:0.8;}
   100%{opacity:0;transform:translateY(-80px) scale(0.8);}
 }
+.place-gmap{
+  display:inline-block;
+  margin-top:4px;
+  font-size:0.75rem;
+  color:#4285F4;
+  text-decoration:none;
+  font-weight:600;
+  letter-spacing:0.03em;
+}
+.place-gmap:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -393,8 +403,8 @@ scene.add(new THREE.Points(sg, new THREE.PointsMaterial({color:0xffffff,size:0.1
 
 // Earth textures
 const tl = new THREE.TextureLoader();
-const dayTex = tl.load('8k_earth_daymap.jpg');
-const nightTex = tl.load('8k_earth_nightmap.jpg');
+const dayTex = tl.load('https://unpkg.com/three-globe/example/img/earth-day.jpg');
+const nightTex = tl.load('https://unpkg.com/three-globe/example/img/earth-night.jpg');
 
 function isDaytime(){
   if(userLat===null) return true;
@@ -411,11 +421,11 @@ function isDaytime(){
 }
 
 const earthMat = new THREE.MeshPhongMaterial({map:dayTex, shininess:10});
-const earth = new THREE.Mesh(new THREE.SphereGeometry(1,64,64), earthMat);
+const earth = new THREE.Mesh(new THREE.SphereGeometry(1,48,48), earthMat);
 scene.add(earth);
 
 // Atmosphere
-scene.add(new THREE.Mesh(new THREE.SphereGeometry(1.06,64,64),
+scene.add(new THREE.Mesh(new THREE.SphereGeometry(1.06,48,48),
   new THREE.MeshBasicMaterial({color:0x2255ff,transparent:true,opacity:0.07,side:THREE.BackSide})));
 
 // Lights
@@ -505,7 +515,7 @@ function getLoc(highAccuracy=true){
     navigator.geolocation.getCurrentPosition(
       p=>res({lat:p.coords.latitude,lng:p.coords.longitude,acc:p.coords.accuracy}),
       e=>rej(e),
-      {enableHighAccuracy:true, timeout:12000, maximumAge:0}
+      {enableHighAccuracy:highAccuracy, timeout:30000, maximumAge:60000}
     );
   });
 }
@@ -576,7 +586,14 @@ async function startSave(screen){
       else{ openFilePicker('save'); return; }
     }
     openSaveSheet();
-  }catch(e){ toast('⚠️ Location denied',2500); }
+  }catch(e){ 
+    console.warn('Location error:', e.code, e.message);
+    if(e.code===1){
+      toast('⚠️ ブラウザのアドレスバーの🔒から位置情報を許可してください',4000);
+    } else {
+      toast('⚠️ 位置情報を取得できませんでした ('+e.message+')',3000);
+    }
+  }
 }
 document.getElementById('save-btn').addEventListener('click', ()=>startSave('globe'));
 document.getElementById('map-save-btn').addEventListener('click', ()=>startSave('map'));
@@ -721,11 +738,12 @@ function renderDrawer(){
     dl.innerHTML='<div class="drawer-empty">No saved places yet.<br>Tap the blue button to save!</div>';
     return;
   }
-  dl.innerHTML = places.map(p=>{
+dl.innerHTML = places.map(p=>{
     const d=new Date(p.ts), fmt=d.toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'});
     return `<div class="place-item" data-lat="${p.lat}" data-lng="${p.lng}" data-id="${p.id}">
       <div class="place-name">${p.name}</div>
       <div class="place-date">${fmt}</div>
+      <a class="place-gmap" href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" onclick="event.stopPropagation()">🗺️ Google Maps</a>
       <button class="place-del" data-id="${p.id}">✕</button>
     </div>`;
   }).join('');
