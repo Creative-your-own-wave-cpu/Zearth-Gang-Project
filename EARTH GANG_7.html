@@ -456,22 +456,6 @@ function animate(){
 }
 animate();
 
-// ── FLOATING EMOJIS ──
-const floatEmojis = ['✈️','🌊','🦋','🐋','⭐','🌴','🦅','🌸','🐬','🌋','🦁','🐘','🌺','🦜','🌙'];
-function spawnFloater(){
-  const el = document.createElement('div');
-  el.className = 'floater';
-  el.textContent = floatEmojis[Math.floor(Math.random()*floatEmojis.length)];
-  const x = 20 + Math.random() * (innerWidth - 60);
-  const y = innerHeight * 0.2 + Math.random() * (innerHeight * 0.5);
-  el.style.left = x + 'px';
-  el.style.top = y + 'px';
-  document.getElementById('screen-globe').appendChild(el);
-  setTimeout(()=> el.remove(), 4200);
-}
-setInterval(spawnFloater, 2800);
-setTimeout(spawnFloater, 500);
-
 // ── LEAFLET MAP ──
 const mapEl = document.getElementById('map-el');
 map = L.map(mapEl, {zoomControl:false, attributionControl:false}).setView([35.68,139.76],15);
